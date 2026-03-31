@@ -1,1 +1,114 @@
 this is a new file
+using System;
+using System.Collections.Generic;
+
+// 1. Order class (Data class)
+class Order
+{
+    public int OrderId;
+    public string ProductName;
+    public int Quantity;
+}
+
+// 2. OrderProcessor (Publisher)
+class OrderProcessor
+{
+    // Delegate
+    public delegate void OrderPlacedHandler(Order order);
+
+    // Event
+    public event OrderPlacedHandler OrderPlaced;
+
+    // Collection to store orders
+    private List<Order> orders = new List<Order>();
+
+    public void PlaceOrder(Order order)
+    {
+        // Add order to list
+        orders.Add(order);
+
+        Console.WriteLine("Order Placed: " + order.ProductName);
+
+        // Raise event
+        OnOrderPlaced(order);
+    }
+
+    protected void OnOrderPlaced(Order order)
+    {
+        if (OrderPlaced != null)
+        {
+            OrderPlaced(order);
+        }
+    }
+
+    public void ShowAllOrders()
+    {
+        Console.WriteLine("\nAll Orders:");
+
+        foreach (Order o in orders)
+        {
+            Console.WriteLine("ID: " + o.OrderId + ", Product: " + o.ProductName + ", Quantity: " + o.Quantity);
+        }
+    }
+}
+
+// 3. Services (Subscribers)
+class Services
+{
+    public void SendEmail(Order order)
+    {
+        Console.WriteLine("Email Sent for Order ID: " + order.OrderId);
+    }
+
+    public void UpdateInventory(Order order)
+    {
+        Console.WriteLine("Inventory Updated for: " + order.ProductName);
+    }
+
+    public void GenerateInvoice(Order order)
+    {
+        Console.WriteLine("Invoice Generated for Order ID: " + order.OrderId);
+    }
+}
+
+// 4. Main Program
+class Program
+{
+    static void Main(string[] args)
+    {
+        OrderProcessor processor = new OrderProcessor();
+        Services service = new Services();
+
+        // Subscribe to event
+        processor.OrderPlaced += service.SendEmail;
+        processor.OrderPlaced += service.UpdateInventory;
+        processor.OrderPlaced += service.GenerateInvoice;
+
+        int choice = 1;
+
+        while (choice == 1)
+        {
+            Order order = new Order();
+
+            Console.Write("Enter Order ID: ");
+            order.OrderId = Convert.ToInt32(Console.ReadLine());
+
+            Console.Write("Enter Product Name: ");
+            order.ProductName = Console.ReadLine();
+
+            Console.Write("Enter Quantity: ");
+            order.Quantity = Convert.ToInt32(Console.ReadLine());
+
+            // Place order
+            processor.PlaceOrder(order);
+
+            Console.Write("\nDo you want to add another order? (1 = Yes, 0 = No): ");
+            choice = Convert.ToInt32(Console.ReadLine());
+        }
+
+        // Show all orders
+        processor.ShowAllOrders();
+
+        Console.ReadLine();
+    }
+}
