@@ -1,1 +1,109 @@
-hgfhf
+using System;
+using System.Collections.Generic;
+
+// 1. Order class (Data class)
+class Order
+{
+    public int OrderId;
+    public string ProductName;
+    public int Quantity;
+}
+
+// 2. OrderProcessor (Publisher)
+class OrderProcessor
+{
+    // Delegate
+    public delegate void OrderPlacedHandler(Order order);
+
+    // Event
+    public event OrderPlacedHandler OrderPlaced;
+
+    // Collection to store orders
+    private List<Order> orders = new List<Order>();
+
+    public void PlaceOrder(Order order)
+    {
+        // Add order to list
+        orders.Add(order);
+
+        Console.WriteLine("Order Placed: " + order.ProductName);
+
+        // Raise event
+        OnOrderPlaced(order);
+    }
+
+    // Method to trigger event
+    protected void OnOrderPlaced(Order order)
+    {
+        if (OrderPlaced != null)
+        {
+            OrderPlaced(order);
+        }
+    }
+
+    // Display all orders
+    public void ShowAllOrders()
+    {
+        Console.WriteLine("\nAll Orders:");
+
+        foreach (Order o in orders)
+        {
+            Console.WriteLine("ID: " + o.OrderId + ", Product: " + o.ProductName + ", Quantity: " + o.Quantity);
+        }
+    }
+}
+
+// 3. Services (Subscribers)
+class Services
+{
+    public void SendEmail(Order order)
+    {
+        Console.WriteLine("Email Sent for Order ID: " + order.OrderId);
+    }
+
+    public void UpdateInventory(Order order)
+    {
+        Console.WriteLine("Inventory Updated for: " + order.ProductName);
+    }
+
+    public void GenerateInvoice(Order order)
+    {
+        Console.WriteLine("Invoice Generated for Order ID: " + order.OrderId);
+    }
+}
+
+// 4. Main Program
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Create objects
+        OrderProcessor processor = new OrderProcessor();
+        Services service = new Services();
+
+        // Subscribe methods to event
+        processor.OrderPlaced += service.SendEmail;
+        processor.OrderPlaced += service.UpdateInventory;
+        processor.OrderPlaced += service.GenerateInvoice;
+
+        // Create orders
+        Order order1 = new Order();
+        order1.OrderId = 1;
+        order1.ProductName = "Laptop";
+        order1.Quantity = 2;
+
+        Order order2 = new Order();
+        order2.OrderId = 2;
+        order2.ProductName = "Mobile";
+        order2.Quantity = 1;
+
+        // Place orders
+        processor.PlaceOrder(order1);
+        processor.PlaceOrder(order2);
+
+        // Show all orders
+        processor.ShowAllOrders();
+
+        Console.ReadLine();
+    }
+}
